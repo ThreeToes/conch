@@ -9,12 +9,9 @@ else
 	EXPORT=export
 endif
 
-.PHONY: build test vendor
+.PHONY: build
 
-build: bin
-	zip $(OUTPUT_PATH)/conch-windows $(OUTPUT_PATH)/windows/$(BINARY_NAME).exe
-	zip $(OUTPUT_PATH)/conch-linux $(OUTPUT_PATH)/linux/$(BINARY_NAME)
-	zip $(OUTPUT_PATH)/conch-macos $(OUTPUT_PATH)/macos/$(BINARY_NAME)
+build: modules linux windows macos
 
 windows:
 	$(EXPORT) GOOS=windows&& go build -o $(OUTPUT_PATH)/windows/$(BINARY_NAME).exe ./...
@@ -25,8 +22,6 @@ linux:
 macos:
 	$(EXPORT) GOOS=darwin&& go build -o $(OUTPUT_PATH)/macos/$(BINARY_NAME) ./...
 
-bin: windows linux macos
-
-vendor:
+modules:
 	go mod tidy
-	go mod vendor
+	go mod download

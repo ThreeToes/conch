@@ -5,7 +5,7 @@ on:
       - master
 
 jobs:
-  build:
+  Build:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -34,6 +34,18 @@ jobs:
         run: |
           cd ./build/macos
           tar -czf ../conch-macos.tar.gz *
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: archives
+          path: build/*.tar.gz
+  Release:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: archives
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@1.26.0
         id: bump_tag
@@ -48,6 +60,6 @@ jobs:
           title: "Build for ${{ steps.bump_tag.outputs.new_tag }}"
           files: |
             LICENSE.md
-            build/conch-linux.tar.gz
-            build/conch-macos.tar.gz
-            build/conch-windows.tar.gz
+            conch-linux.tar.gz
+            conch-macos.tar.gz
+            conch-windows.tar.gz

@@ -71,14 +71,12 @@ func main() {
 	}
 	logMsg("Found %d instances", len(instanceMap))
 	if len(instanceMap) == 0 {
-		fmt.Printf("There were no servers found using the profile \"%s\" and region \"%s\"", *profileF, *regionF)
-		os.Exit(1)
+		log.Fatalf("There were no servers found using the profile \"%s\" and region \"%s\"", *profileF, *regionF)
 	}
 
 	chosenInstance, err := getInstance(instanceMap)
 	if err != nil {
-		fmt.Printf("Error getting user selection: %v", err)
-		os.Exit(1)
+		log.Fatalf("Error getting user selection: %v", err)
 	}
 	logMsg("User chose %s\n", *chosenInstance.InstanceId)
 	rand.Seed(time.Now().Unix())
@@ -91,7 +89,7 @@ func main() {
 	pubKeyPath := fmt.Sprintf("%s.pub", keyPath)
 	pubKeyFile, err := os.Open(pubKeyPath)
 	if err != nil {
-		log.Fatalf("Could not open public key %s: %v", pubKeyPath, err)
+		log.Fatalf("Could not open public key %s: %v\n", pubKeyPath, err)
 	}
 	defer pubKeyFile.Close()
 	defer func () {

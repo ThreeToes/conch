@@ -1,6 +1,5 @@
 BINARY_NAME=conch
 OUTPUT_PATH=build
-STACK_NAME=ecs-fargate-$(MODULE_NAME)
 ifeq ($(OS),Windows_NT)
     EXE_SUFFIX=.exe
     EXPORT=set

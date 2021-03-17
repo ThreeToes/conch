@@ -10,13 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 5
-      - name: Bump version and push tag
-        uses: anothrNick/github-tag-action@1.26.0
-        id: bump_tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WITH_V: true
+          fetch-depth: 10
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
@@ -40,9 +34,20 @@ jobs:
         run: |
           cd ./build/macos
           tar -czf ../conch-macos.tar.gz *
-      - name: Upload artifacts
-        uses: ncipollo/release-action@v1
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.26.0
+        id: bump_tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+      - uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          tag: ${{ steps.tag_version.outputs.new_tag }}
-          artifacts: "build/*.zip"
-          token: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: |
+            LICENSE.md
+            build/conch-linux.tar.gz
+            build/conch-macos.tar.gz
+            build/conch-windows.tar.gz

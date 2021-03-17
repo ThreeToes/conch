@@ -16,26 +16,22 @@ jobs:
       - name: Install dependencies
         run: |
           go version
-          go get -u golang.org/x/lint/golint
           go mod download
       - name: Run build
         run: |
           make
       - name: Archive Linux Release
-        uses: thedoctor0/zip-release@master
-        with:
-          filename: 'build/conch-linux.zip'
-          directory: 'build/linux/'
+        run: |
+          cd ./build/linux
+          tar -czf ../conch-linux.tar.gz *
       - name: Archive Windows Release
-        uses: thedoctor0/zip-release@master
-        with:
-          filename: 'build/conch-windows.zip'
-          directory: 'build/windows/'
+        run: |
+          cd ./build/windows
+          tar -czf ../conch-windows.tar.gz *
       - name: Archive Mac OS Release
-        uses: thedoctor0/zip-release@master
-        with:
-          filename: 'build/conch-macos.zip'
-          directory: 'build/macos/'
+        run: |
+          cd ./build/macos
+          tar -czf ../conch-macos.tar.gz *
       - name: Upload artifacts
         uses: ncipollo/release-action@v1
         with:

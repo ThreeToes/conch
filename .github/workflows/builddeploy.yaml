@@ -17,44 +17,11 @@ jobs:
         run: |
           go version
           go get -u golang.org/x/lint/golint
-          apt-get install zip make
       - name: Run build
         run: |
           make
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifacts
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-      - name: Upload Linux Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/conch-linux.zip
-          asset_name: conch-linux.zip
-          asset_content_type: application/zip
-      - name: Upload Windows Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/conch-windows.zip
-          asset_name: conch-windows.zip
-          asset_content_type: application/zip
-      - name: Upload Mac OS Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/conch-macos.zip
-          asset_name: conch-macos.zip
-          asset_content_type: application/zip
+          artifacts: "build/*.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}

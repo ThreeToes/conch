@@ -28,8 +28,8 @@ The server will also need to have
 installed. 
 
 ### Arguments
-* `-profile {AWS Profile name}` - Specify the AWS profile to use
-* `-region {AWS Region}` - Specify the AWS region to use
-* `-user {EC2 Server instance user}` - Specify the OS user on the EC2 instance
-* `-port {SSH port}` - Specify the SSH port
+* `-p {AWS Profile name}` - Specify the AWS profile to use
+* `-r {AWS Region}` - Specify the AWS region to use
+* `-u {EC2 Server instance user}` - Specify the OS user on the EC2 instance
+* `-o {SSH port}` - Specify the SSH port
 * `-v` - Verbose logging

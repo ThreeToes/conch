@@ -22,10 +22,10 @@ import (
 var debug *bool
 
 func main() {
-	portF := flag.Int("port", 22, "SSH port on the server")
-	profileF := flag.String("profile", "default", "AWS Profile")
-	regionF := flag.String("region", "ap-southeast-2", "AWS Region")
-	userF := flag.String("user", "ec2-user", "Server user")
+	portF := flag.Int("o", 22, "SSH port on the server")
+	profileF := flag.String("p", "default", "AWS Profile")
+	regionF := flag.String("r", "ap-southeast-2", "AWS Region")
+	userF := flag.String("u", "ec2-user", "Server user")
 	debug = flag.Bool("v", false, "Verbose output")
 	flag.Parse()
 

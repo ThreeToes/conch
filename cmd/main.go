@@ -16,6 +16,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"sort"
 	"time"
 )
 
@@ -156,6 +157,7 @@ func getInstance(instances map[string] *types.Instance) (*types.Instance, error)
 	for k, _ := range instances {
 		prompt.Options = append(prompt.Options, k)
 	}
+	sort.Strings(prompt.Options)
 	var choice string
 	err := survey.AskOne(prompt, &choice)
 

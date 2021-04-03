@@ -55,6 +55,9 @@ func main() {
 		}
 		for _, r := range res.Reservations {
 			for _, i := range r.Instances {
+				if i.State.Code != 16 {
+					continue
+				}
 				name := ""
 				for _, t := range i.Tags {
 					if *t.Key == "Name" {

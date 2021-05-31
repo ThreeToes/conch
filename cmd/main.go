@@ -4,12 +4,12 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect"
-	"github.com/AlecAivazis/survey/v2"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -25,7 +25,7 @@ var debug *bool
 func main() {
 	portF := flag.Int("o", 22, "SSH port on the server")
 	profileF := flag.String("p", "default", "AWS Profile")
-	regionF := flag.String("r", "ap-southeast-2", "AWS Region")
+	regionF := flag.String("r", "", "AWS Region")
 	userF := flag.String("u", "ec2-user", "Server user")
 	debug = flag.Bool("v", false, "Verbose output")
 	flag.Parse()
@@ -35,8 +35,10 @@ func main() {
 		logMsg("Using profile %s", *profileF)
 		creds = append(creds, config.WithSharedConfigProfile(*profileF))
 	}
-	logMsg("Using region %s", *regionF)
-	creds = append(creds, config.WithRegion(*regionF))
+	if *regionF != "" {
+		logMsg("Using region %s", *regionF)
+		creds = append(creds, config.WithRegion(*regionF))
+	}
 	cfg, err := config.LoadDefaultConfig(context.Background(), creds...)
 	if err != nil {
 		log.Fatalf("Error loading config from profile: %v", err)

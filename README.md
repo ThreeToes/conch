@@ -33,3 +33,5 @@ installed.
 * `-u {EC2 Server instance user}` - Specify the OS user on the EC2 instance
 * `-o {SSH port}` - Specify the SSH port
 * `-v` - Verbose logging
+* `-b` - Use a bastion server
+* `-bu` - Bastion username, default `ec2-user`

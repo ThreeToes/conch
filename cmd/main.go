@@ -28,6 +28,8 @@ func main() {
 	regionF := flag.String("r", "", "AWS Region")
 	userF := flag.String("u", "ec2-user", "Server user")
 	debug = flag.Bool("v", false, "Verbose output")
+	bastion := flag.Bool("b", false, "Use a bastion server")
+	bastionUser := flag.String("bu", "ec2-user", "Bastion username")
 	flag.Parse()
 
 	var creds []func(options *config.LoadOptions) error
@@ -79,8 +81,15 @@ func main() {
 	if len(instanceMap) == 0 {
 		log.Fatalf("There were no servers found using the profile \"%s\" and region \"%s\"", *profileF, *regionF)
 	}
+	var bastionInstance *types.Instance
+	if *bastion {
+		bastionInstance, err = getInstance(instanceMap, true)
+		if err != nil {
+			log.Fatalf("Could not get bastion")
+		}
+	}
 
-	chosenInstance, err := getInstance(instanceMap)
+	chosenInstance, err := getInstance(instanceMap, false)
 	if err != nil {
 		log.Fatalf("Error getting user selection: %v", err)
 	}
@@ -110,6 +119,18 @@ func main() {
 	pubKey, err := ioutil.ReadAll(pubKeyFile)
 	logMsg("Sending public key to %s", *chosenInstance.InstanceId)
 	eic := ec2instanceconnect.NewFromConfig(cfg)
+	if *bastion {
+		spko, err := eic.SendSSHPublicKey(context.TODO(), &ec2instanceconnect.SendSSHPublicKeyInput{
+			AvailabilityZone: bastionInstance.Placement.AvailabilityZone,
+			InstanceId:       bastionInstance.InstanceId,
+			InstanceOSUser:   userF,
+			SSHPublicKey:     aws.String(string(pubKey)),
+		})
+		logMsg("Request ID: %s, Success: %t", *spko.RequestId, spko.Success)
+		if err != nil {
+			log.Fatalf("Could not send public key to bastion %s: %v", *chosenInstance.InstanceId, err)
+		}
+	}
 	spko, err := eic.SendSSHPublicKey(context.TODO(), &ec2instanceconnect.SendSSHPublicKeyInput{
 		AvailabilityZone: chosenInstance.Placement.AvailabilityZone,
 		InstanceId:       chosenInstance.InstanceId,
@@ -120,7 +141,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not send public key to %s: %v", *chosenInstance.InstanceId, err)
 	}
-	startSsh(*userF, *chosenInstance.PublicIpAddress, keyPath, *portF)
+	hostName := *chosenInstance.PublicIpAddress
+	// if using a bastion, we want to go via a private IP
+	if *bastion {
+		hostName = *chosenInstance.PrivateIpAddress
+	}
+	startSsh(*userF, hostName, keyPath, *portF, bastionInstance, *bastionUser)
 }
 
 func logMsg(msg string, args... interface{}) {
@@ -138,11 +164,17 @@ func genTmpKey(keyPath string) error {
 	return cmd.Run()
 }
 
-func startSsh(user, server, keyPath string, port int) {
-	cmd := exec.Command("ssh",
+func startSsh(user, server, keyPath string, port int, bastionInstance *types.Instance, bastionUser string) {
+	var args []string
+	if bastionInstance != nil {
+		args = append(args, "-J", fmt.Sprintf("%s@%s", bastionUser, *bastionInstance.PublicIpAddress))
+	}
+	args = append(args,
 		fmt.Sprintf("%s@%s", user, server),
 		"-p", fmt.Sprintf("%d", port),
 		"-i", keyPath)
+	logMsg("ssh %v", args)
+	cmd := exec.Command("ssh", args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -152,9 +184,13 @@ func startSsh(user, server, keyPath string, port int) {
 	}
 }
 
-func getInstance(instances map[string] *types.Instance) (*types.Instance, error) {
+func getInstance(instances map[string]*types.Instance, bastion bool) (*types.Instance, error) {
+	msg := "Choose an instance to connect to"
+	if bastion {
+		msg = "Choose a bastion instance to connect through"
+	}
 	prompt := &survey.Select{
-		Message:       "Choose an instance to connect to",
+		Message: msg,
 	}
 	for k, _ := range instances {
 		prompt.Options = append(prompt.Options, k)
